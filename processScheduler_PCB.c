@@ -7,12 +7,9 @@ Date modified: June 2, 2016
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-//Global variables
-static int runCounter=0, pcbCounter=0;
-//Global constants
-static const int TIME_QUANTUM=30, FILE_OFFSET=38;
-//Structure for PCB processes by descriptor
-struct ProcessesPCB {
+static int runCounter=0, pcbCounter=0; //Global variables
+static const int TIME_QUANTUM=30, FILE_OFFSET=38; //Global constants
+struct ProcessesPCB{ //Structure for PCB processes by descriptor
     int pID, pBurst, pBase; //Initialize process ID, burst time, and base register as int
     long pLim; //Initialize process limit register as long
     char pName[17], pAStatus, pPr; //Initialize process name, activity status, and priority as character arrays
@@ -55,7 +52,6 @@ void writePCB(struct ProcessesPCB *processesInput, int pcbCounter, FILE *writeP)
 void printPCB(struct ProcessesPCB *processesInput, int pcbCounter){ //Function to display PCB process info
     int fCounter=0; //Counter for looping through process info
     for(fCounter=0; fCounter<pcbCounter; fCounter++){ //Loop through the current process' descriptions
-        printf("%3d.", fCounter+1);
         printf("%16s", processesInput[fCounter].pName);
         printf("%12d", processesInput[fCounter].pID);
         printf("%7d", processesInput[fCounter].pBase);
@@ -77,7 +73,7 @@ void loadIndexPCB(struct ProcessesPCB *processesInput, int *pQueue){ //Function 
     } //End for
 } //End loadIndexPCB
 void setPriorityPCB(struct ProcessesPCB *processesInput){ //Function to determine current process priority
-    int prCounter, currentP; //Variables for setting process priorities
+    int prCounter=0, currentP; //Variables for setting process priorities
     for(prCounter=0; prCounter<pcbCounter; prCounter++){ //Loop through processes and set priorities
         if((&processesInput[prCounter].pAStatus!=0)&&(processesInput[prCounter].pPr>0)){ //Determine priority
             currentP=processesInput[prCounter].pPr-1;
@@ -109,7 +105,7 @@ int main(){
     fseek(readP, 0L, SEEK_END); //Set file index position to end
     fSize=ftell(readP); //Retrieve the current file position
     rewind(readP); //Return to the beginning of the file
-    pcbCounter=(fSize/FILE_OFFSET); //Set the current process
+    pcbCounter=(fSize/FILE_OFFSET); //Set the process counter
     struct ProcessesPCB processesInput[pcbCounter]; //Initialize struct for PCB process data
     loadPCB(processesInput, pcbCounter, readP); //Call function to load process data
     int *pQueue=NULL; //Initialize queue for process priorities
