@@ -1,7 +1,7 @@
 /*
 Name: Elizabeth Brooks 
 File: processScheduler_PCB
-Date modified: June 2, 2016
+Date Modified: June 2, 2016
 */
 //Class imports
 #include <string.h>
@@ -14,8 +14,8 @@ struct ProcessesPCB{ //Structure for PCB processes by descriptor
     long pLim; //Initialize process limit register as long
     char pName[17], pAStatus, pPr; //Initialize process name, activity status, and priority as character arrays
 }; //End struct
-int modDiff(const void *a, const void *b){ //Function for qsort to set process priorities
-   return ((*(int*)a%1000)-(*(int*)b%1000));
+int modDiff(const void *first, const void *second){ //Function for qsort to set process priorities
+   return ((*(int*)first%1000)-(*(int*)second%1000));
 } //End modDiff
 //Class functions for performing selected PCB processes
 void loadPCB(struct ProcessesPCB *processesInput, int pcbCounter, FILE *readP){ //Function to retrieve PCB processes
@@ -52,13 +52,9 @@ void writePCB(struct ProcessesPCB *processesInput, int pcbCounter, FILE *writeP)
 void printPCB(struct ProcessesPCB *processesInput, int pcbCounter){ //Function to display PCB process info
     int fCounter=0; //Counter for looping through process info
     for(fCounter=0; fCounter<pcbCounter; fCounter++){ //Loop through the current process' descriptions
-        printf("%16s", processesInput[fCounter].pName);
-        printf("%12d", processesInput[fCounter].pID);
-        printf("%7d", processesInput[fCounter].pBase);
-        printf("%7lu", processesInput[fCounter].pLim);
-        printf("%5d", processesInput[fCounter].pBurst);
-        printf("%5d\n", processesInput[fCounter].pPr);
-        printf("%3d", processesInput[fCounter].pAStatus);
+        printf("Process info: %s, %d, %d, %lu, %d, %d, %d\n", processesInput[fCounter].pName, processesInput[fCounter].pID, 
+            processesInput[fCounter].pBase, processesInput[fCounter].pLim, processesInput[fCounter].pBurst, processesInput[fCounter].pPr, 
+            processesInput[fCounter].pAStatus);
     } //End for
 } //End printPCB
 void loadIndexPCB(struct ProcessesPCB *processesInput, int *pQueue){ //Function to set the current process index
@@ -119,15 +115,15 @@ int main(){
                 writePCB(processesInput, pcbCounter, writeP); //Store the current process data using class function
                 printPCB(processesInput, pcbCounter); //Display the current process data using class function
                 if(((i%2)==0)&&(i>0)) setPriorityPCB(processesInput);
-                prStatus++; //Increment counter
+                prStatus++; //Increment process counter
                 jmpStatus=0; //Reinitialize skip tracker variable
             }else{
                 i++; //Increment counter for looping
                 if(++jmpStatus==pcbCounter){ //Determine if complete
+                    prStatus=TIME_QUANTUM; //Set process flag
                     printf("Program complete!");
-                    prStatus=TIME_QUANTUM;
-                    fnStatus=1;
                     writePCB(processesInput, pcbCounter, writeP); //Use class function to write PCB data
+                    fnStatus=1; //Set program complete flag
                     return 0; //Exit program return
                 } //End if
                 if(((i%2)==0)&&(i>0)) setPriorityPCB(processesInput); //If even and not 0, set process priority
@@ -136,18 +132,19 @@ int main(){
         } //End first inner while        
         prStatus=0; //Reinitialize priority tracker
         while(prStatus<TIME_QUANTUM){
-            if(prIndex==pcbCounter){
+            if(prIndex==pcbCounter){ //Check if PCB processes have been completed
+                prStatus=TIME_QUANTUM; //Set process flag
                 printf("Program complete!");
-                prStatus=TIME_QUANTUM;
-                fnStatus=1;
                 writePCB(processesInput, pcbCounter, writeP); //Use class function to store process data
+                fnStatus=1; //Set program complete flag
                 return 0; //End of program return
             } //End if
             if(processesInput[pQueue[prIndex]].pAStatus!=0){
-                prStatus++;
                 if(burstCPU(processesInput, pQueue[prIndex]) == 0) printf("Process complete! (Priority: %d)\n", runCounter);
                 writePCB(processesInput, pcbCounter, writeP); //Use class function to store process data
                 printPCB(processesInput, pcbCounter); //Use class function to display process data
+                prStatus++; //Increment priority counter
+                fnStatus=1; //Set program complete flag
             }else{
                 prIndex++; //Incrememnt process index
             } //End if, else
